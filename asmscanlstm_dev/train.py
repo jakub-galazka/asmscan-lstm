@@ -81,7 +81,7 @@ def train(model_dir: str, cv_iters: int) -> None:
 
         # Save results
         model_name = MODEL_NAME + str(cv_i)
-        model.save(makedir(os.path.join(model_dir, CV_MODELS_DIR, model_name)))
+        model.save(makedir(os.path.join(model_dir, CV_MODELS_DIR, f"{model_name}.h5")))
         np.save(makedir(os.path.join(model_dir, DATA_HIST_DIR, model_name)), r.history)
 
     # Save architecture

@@ -95,7 +95,7 @@ def predict(model_dir: str) -> None:
             model = tf.keras.models.load_model(model_filepath)
 
             # Predict
-            y_pred.append(model.predict(x_tst).flatten()) # [[1], [1], ..., [1]] -> [1, 1, ..., 1]
+            y_pred.append(model(x_tst).numpy().flatten()) # [[1], [1], ..., [1]] -> [1, 1, ..., 1]
 
             # Save cv results
             model_name = os.path.basename(model_filepath)

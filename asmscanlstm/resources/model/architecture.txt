@@ -1,0 +1,25 @@
+Model: "bass-model-1.0.0"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input (InputLayer)          [(None, 40)]              0         
+                                                                 
+ embedding (Embedding)       (None, 40, 8)             208       
+                                                                 
+ dropout_0 (Dropout)         (None, 40, 8)             0         
+                                                                 
+ bi-lstm (Bidirectional)     (None, 40, 16)            1088      
+                                                                 
+ dropout_1 (Dropout)         (None, 40, 16)            0         
+                                                                 
+ lstm (LSTM)                 (None, 4)                 336       
+                                                                 
+ before-classif (Dropout)    (None, 4)                 0         
+                                                                 
+ classif (Dense)             (None, 1)                 5         
+                                                                 
+=================================================================
+Total params: 1,637
+Trainable params: 1,637
+Non-trainable params: 0
+_________________________________________________________________

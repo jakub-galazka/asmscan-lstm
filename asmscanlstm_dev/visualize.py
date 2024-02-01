@@ -2,6 +2,7 @@ import glob
 import os
 import sys
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,14 +15,15 @@ from util.ploter import savefig
 from util.tokenizer import load_tokenizer
 from util.tsne import tsne_2d
 
-
 TSNE_COMBS = [
-    ["PB40_1z20_clu50_test_sampled10000", "NLReff_test", "bass_ntm_domain_test", "fass_ntm_domain_test", "fass_ctm_domain_test"],
-    ["PB40_1z20_clu50_test_sampled10000", "NLReff_test", "bass_ntm_motif_test", "fass_ntm_motif_test", "fass_ctm_motif_test"],
-    ["PB40_1z20_clu50_test_sampled10000", "NLReff_test", "bass_ntm_motif_test", "bass_ntm_motif_env5_test", "bass_ntm_motif_env10_test"],
-    ["PB40_1z20_clu50_test_sampled10000", "NLReff_test", "fass_ntm_motif_test", "fass_ntm_motif_env5_test", "fass_ntm_motif_env10_test"],
-    ["PB40_1z20_clu50_test_sampled10000", "NLReff_test", "fass_ctm_motif_test", "fass_ctm_motif_env5_test", "fass_ctm_motif_env10_test"]
+    ["PB40_1z20_clu50_test_sampled100", "NLReff_test_sampled100", "fass_ctm_domain_test", "fass_ntm_domain_test", "bass_ntm_domain_test"],
+    ["PB40_1z20_clu50_test_sampled100", "NLReff_test_sampled100", "fass_ctm_motif_test", "fass_ntm_motif_test", "bass_ntm_motif_test"],
+    ["PB40_1z20_clu50_test_sampled100", "NLReff_test_sampled100", "bass_ntm_motif_test", "bass_ntm_motif_env5_test", "bass_ntm_motif_env10_test"],
+    ["PB40_1z20_clu50_test_sampled100", "NLReff_test_sampled100", "fass_ntm_motif_test", "fass_ntm_motif_env5_test", "fass_ntm_motif_env10_test"],
+    ["PB40_1z20_clu50_test_sampled100", "NLReff_test_sampled100", "fass_ctm_motif_test", "fass_ctm_motif_env5_test", "fass_ctm_motif_env10_test"]
 ]
+
+MARKER_SIZE = mpl.rcParams["lines.markersize"] ** 2 # Default marker size (https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html)
 
 def visualize(model_dir: str, layer_name: str) -> None:
     tokenizer = load_tokenizer()
@@ -29,12 +31,21 @@ def visualize(model_dir: str, layer_name: str) -> None:
 
     for comb in TSNE_COMBS:
         # Collect the most significant fragments (comb results)
-        frags = []
         sets_sizes = {}
+        frags = []
+        marker_sizes = []
         for set in comb:
-            frag = pd.read_csv(os.path.join(model_dir, DATA_PRED_DIR, f'{set}.{config["modelcomb_name"]}.csv'), sep=SEP)["frag"]
-            sets_sizes[set] = len(frag)
-            frags.extend(frag)
+            pred = pd.read_csv(os.path.join(model_dir, DATA_PRED_DIR, f'{set}.{config["modelcomb_name"]}.csv'), sep=SEP)
+            p = pred["prob"]
+            c = pred["class"]
+            f = pred["frag"]
+
+            d = abs(c - p)
+
+            sets_sizes[set] = len(f)
+            frags.extend(f)
+            marker_sizes.extend(d)
+        marker_sizes = 1.2 * MARKER_SIZE - np.multiply(marker_sizes, MARKER_SIZE)
 
         # Tokenize text
         frags = tokenizer.texts_to_sequences(frags)
@@ -59,16 +70,19 @@ def visualize(model_dir: str, layer_name: str) -> None:
 
         # Config plot
         plt.figure(figsize=(12.8, 9.6))
-        plt.rc("axes", prop_cycle=cycler(color=["whitesmoke", "lightgray", "blue", "green", "red"]))
-        plt.axis("off")
+        plt.rc("axes", prop_cycle=cycler(color=plt.cm.rainbow(np.linspace(1, 0, len(comb))))) # 0, 1: Violet -> Red | 1, 0: Red -> Violet
+        plt.xlabel("x")
+        plt.ylabel("y")
 
         # Plot TSNE
         i = 0
         for set in comb:
             ss = sets_sizes[set]
-            plt.scatter(x[i:i+ss], y[i:i+ss], label=set, s=5)
+            plt.scatter(x[i:i+ss], y[i:i+ss], label=set, s=marker_sizes[i:i+ss])
             i += ss
-        savefig(os.path.join(model_dir, "plots", "tsne", f'{".".join(comb)}.png'))
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc="upper left")
+        plt.tight_layout()
+        savefig(os.path.join(model_dir, "plots", "tsne", f'{".".join(comb)}.png'), legend=False)
 
 if __name__ == "__main__":
     model_dir = os.path.join(MODELS_DIR, sys.argv[1])

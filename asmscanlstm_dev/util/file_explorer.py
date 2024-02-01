@@ -1,7 +1,7 @@
 import os
 
 
-PACKAGE_ROOT = "asmscanlstm"
+PACKAGE_ROOT = "asmscanlstm_dev"
 
 # Data dirs
 NEG_DATA_DIR = os.path.join(PACKAGE_ROOT, "resources", "data", "negative")

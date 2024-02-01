@@ -17,8 +17,9 @@ from util.tokenizer import load_tokenizer
 TST_SETS_FILEPATHS = [
     os.path.join(NEG_DATA_DIR, "DisProt", "DisProt_test.fa"),
     os.path.join(NEG_DATA_DIR, "NLReff", "NLReff_test.fa"),
+    os.path.join(NEG_DATA_DIR, "NLReff", "NLReff_test_sampled100.fa"),
     os.path.join(NEG_DATA_DIR, "PB40", "PB40_1z20_clu50_test.fa"),
-    os.path.join(NEG_DATA_DIR, "PB40", "PB40_1z20_clu50_test_sampled10000.fa"),
+    os.path.join(NEG_DATA_DIR, "PB40", "PB40_1z20_clu50_test_sampled100.fa"),
     os.path.join(POS_DATA_DIR, "bass_domain", "bass_ntm_domain_test.fa"),
     os.path.join(POS_DATA_DIR, "bass_domain", "bass_other_ctm_domain_test.fa"),
     os.path.join(POS_DATA_DIR, "bass_domain", "bass_other_ntm_domain_test.fa"),
@@ -43,7 +44,7 @@ class FragmentedSet:
     def __init__(self, fasta_filepath: str, max_seq_len: int) -> None:
         filepath_comps = fasta_filepath.split(os.sep)
         self.set_name = filepath_comps[-1].split(".")[0]
-        self.isPositive = filepath_comps[1] == POS_DATA_DIR.split(os.sep)[1]
+        self.isPositive = POS_DATA_DIR.split(os.sep)[-1] in filepath_comps
 
         self.ids, seqs = read_fasta(fasta_filepath)
         self.frags, self.scopes = self.fragment_sequences(seqs, max_seq_len)
@@ -98,7 +99,7 @@ def predict(model_dir: str) -> None:
             y_pred.append(model(x_tst).numpy().flatten()) # [[1], [1], ..., [1]] -> [1, 1, ..., 1]
 
             # Save cv results
-            model_name = os.path.basename(model_filepath)
+            model_name = os.path.basename(model_filepath).split(".")[0]
             save_model_prediction(model_name, fs, y_pred[i])
 
         # Save comb results
